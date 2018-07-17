@@ -2,24 +2,25 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models.signals import post_save
 from django.utils import timezone
+from django.urls import reverse
 
 from apps.departments.models import Position
-from apps.utils.notifications import candidate_created
+from apps.notifications.notifications import candidate_created
 
 User = get_user_model()
 
 CANDIDATE_STATUS = (
-    (0, 'Не рассмотрено'),
-    (1, 'Рассмотрено'),
-    (2, 'Подходит'),
-    (3, 'Не подходит'),
-    (4, 'Отправлен тест'),
-    (5, 'Приглашен на интервью'),
-    (6, 'Интервью проведено'),
-    (7, 'Штат'),
-    (8, 'Резерв'),
-    (9, 'Стажёр'),
-    (10, 'Не прошел интервью'),
+    ('NOT_REVIEWED', 'На рассмотрений'),
+    ('REVIEWED', 'Рассмотрено'),
+    ('SATISFYING', 'Подходит'),
+    ('NOT_SATISFYING', 'Не подходит'),
+    ('TEST_SENT', 'Отправлен на тест'),
+    ('INVITED_TO_INTERVIEW', 'Приглашен на интервью'),
+    ('INTERVIEWS_CONDUCTED', 'Интервью проведено'),
+    ('CURRENT_EMPLOYEE', 'Штат'),
+    ('IN_RESERVE', 'Резерв'),
+    ('INTERN', 'Стажер'),
+    ('FAILED_INTERVIEW', 'Не прошел интервью'),
 )
 
 
@@ -30,7 +31,7 @@ class Candidate(models.Model):
     phone = models.CharField(max_length=30, blank=True, null=True)
     experience = models.FloatField(blank=True, null=True)
     level = models.CharField(max_length=30, blank=True, null=True)
-    status = models.IntegerField(choices=CANDIDATE_STATUS, default=0)
+    status = models.CharField(choices=CANDIDATE_STATUS, max_length=100, default='NOT_REVIEWED')
     skype = models.CharField(max_length=254, blank=True, null=True)
     position = models.ForeignKey(Position, on_delete=models.PROTECT, null=True)
     created = models.DateTimeField(default=timezone.now)
@@ -41,14 +42,17 @@ class Candidate(models.Model):
         ordering = ('last_name',)
 
     def __str__(self):
-        return '{0} {1}'.format(self.first_name, self.last_name)
+        return self.email
+
+    def get_absolute_url(self):
+        return reverse('v1:candidate-detail', kwargs={'pk': self.id})
 
 
 post_save.connect(candidate_created, sender=Candidate)
 
 
 class CV(models.Model):
-    url = models.CharField(max_length=50, blank=True, null=True)
+    url = models.URLField(null=True)
     candidate = models.ForeignKey(Candidate, on_delete=models.PROTECT, related_name='CV')
     created = models.DateTimeField(auto_now_add=True)
 

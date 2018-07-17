@@ -8,8 +8,9 @@ class UserManager(BaseUserManager):
         if not email:
             raise ValueError("The given email must be set")
 
-        if not str(email).endswith('zensoft.io'):
-            raise ValueError('Email must be at @zensoft.io domain only!')
+        # Don't touch until we resolve issue with email
+        # if not str(email).endswith('zensoft.io'):
+        #    raise ValueError('Email must be at @zensoft.io domain only!')
 
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
@@ -23,7 +24,7 @@ class UserManager(BaseUserManager):
 
     def create_superuser(self, email, password, **extra_fields):
         extra_fields.setdefault('is_superuser', True)
-        extra_fields.setdefault('is_staff',True)
+        extra_fields.setdefault('is_staff', True)
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('Superuser must have is_superuser=True.')
 

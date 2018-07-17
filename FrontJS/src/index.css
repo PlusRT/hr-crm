@@ -1,0 +1,56 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto');
+@import url("https://fonts.googleapis.com/css?family=Ubuntu:400,500,700&amp;subset=cyrillic,latin-ext");
+
+html, body {
+    margin: 0;
+    height: 100%;
+    font-family: 'Ubuntu', sans-serif;
+}
+
+.container {
+		display: flex;
+}
+.content {
+    flex-grow: 9;
+}
+
+.profile_photo {
+    width: 50px;
+}
+.headphoto {
+    text-align: center;
+}
+
+.header_main {
+    background: #b8dff0;
+    text-align: center
+}
+.header_main h2 {
+    margin: 0;
+    padding: 10px;
+}
+
+.label{
+    display: inline-block;
+}
+#label span {
+    margin: 10px, 15px;
+    padding: 10px, 15px;
+}
+.div_items {
+	margin: 20px;
+	font-family: 'Ubuntu', sans-serif;
+}
+.labels {
+	display: inline-block;
+	margin-right: 20px;
+}
+.plusminus {
+	display: inline-block;
+	padding: 3px 13px;
+	border: 1px solid grey;
+	cursor: pointer;
+	border-radius: 3px;
+	margin: 0 20px;
+	user-select: none;/* prevent from highlighting Chrome & Opera*/
+}

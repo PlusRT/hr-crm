@@ -1,37 +1,62 @@
 from rest_framework.test import APITestCase
+from django.utils import timezone
 
 from apps.utils.base_tests import ListTestMixin, CreateTestMixin, GetInstanceTestMixin
-from apps.departments.models import Department
 from .models import Criteria, Interview
-from .serializers import CriteriaSerializer, InterviewDetailSerializer, InterviewListSerializer
+from .serializers import CriteriaCreateSerializer, InterviewDetailSerializer, InterviewListSerializer, \
+    CriteriaListSerializer, InterviewCreateSerializer
 
 
-class CriteriaCreateListTestCase(ListTestMixin, CreateTestMixin, APITestCase):
-    url = '/criterias/'
+class CriteriaCreateTestCase(CreateTestMixin, APITestCase):
     model = Criteria
-    serializer = CriteriaSerializer
+    serializer = CriteriaCreateSerializer
 
-    def setUp(self):
-        department = Department.objects.create(name='Python')
-        self.request_body = {
-            "name": "OOP",
-            "department": department.id
-        }
+    fixtures = ['candidates.json', 'departments.json', 'requests.json', 'users.json', 'vacancies.json',
+                'interviews.json']
+
+    request_body = {
+        "name": "OOP",
+        "department": 1
+    }
+
+
+class CriteriaListTestCase(ListTestMixin, APITestCase):
+    model = Criteria
+    serializer = CriteriaListSerializer
+
+    fixtures = ['candidates.json', 'departments.json', 'requests.json', 'users.json', 'vacancies.json',
+                'interviews.json']
 
 
 class InterviewListTestCase(ListTestMixin, APITestCase):
-    url = '/interviews/'
     model = Interview
     serializer = InterviewListSerializer
 
+    fixtures = ['candidates.json', 'departments.json', 'requests.json', 'users.json', 'vacancies.json',
+                'interviews.json']
 
-class InterviewDetailTest(GetInstanceTestMixin, APITestCase):
-    url = '/interviews/'
+
+class InterviewCreateTestCase(CreateTestMixin, APITestCase):
+    model = Interview
+    serializer = InterviewCreateSerializer
+
+    fixtures = ['candidates.json', 'departments.json', 'requests.json', 'users.json', 'vacancies.json',
+                'interviews.json']
+
+    request_body = {
+        "date": timezone.now(),
+        "status": 1,
+        "interviewers": [1, 2],
+        "candidate": 1
+        }
+
+
+class InterviewDetailTestCase(GetInstanceTestMixin, APITestCase):
     model = Interview
     serializer = InterviewDetailSerializer
 
-    fixtures = ['candidates.json', 'departments.json', 'requests.json', 'users.json', 'interviews.json',
-                'vacancies.json']
+    fixtures = ['candidates.json', 'departments.json', 'requests.json', 'users.json', 'vacancies.json',
+                'interviews.json']
 
     def setUp(self):
         self.instance = Interview.objects.get(pk=1)

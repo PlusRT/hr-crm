@@ -1,10 +1,10 @@
 import { Controller } from '@nestjs/common';
 import * as Amqp from "amqp-ts";
 import { TemplateService } from './template.service';
+import * as connection from 'Rabbit';
 
-const connection = new Amqp.Connection("amqp://localhost");
-const exchange = connection.declareExchange("exchangeForTemplate", 'direct', { durable: false });
-const queue = connection.declareQueue('template');
+const exchange = connection.default.declareExchange("js-backend", 'direct', { durable: false });
+const queue = connection.default.declareQueue('template',{durable:false});
 @Controller('template')
 export class TemplateListener {
     constructor(private readonly templateService: TemplateService){
@@ -12,6 +12,7 @@ export class TemplateListener {
     }
 
     public distributionTasks(task){
+      console.log(task.title);
       const obj = {
         CREATE: this.createTemplate,
         UPDATE: this.updateTemplate,
@@ -22,50 +23,71 @@ export class TemplateListener {
       if (obj[task.title]) {
         obj[task.title](task)
       } else {
-        this.sendMessage("SOMETHING IS WRONG");
+        this.sendMessage({"status": 400});
       }
     }
 
-    async findAllTemplate = (template) => {
-      this.templateService.findAll()
-      .then( (temp) => { this.sendMessage(temp) })
-      .catch( (err) => { this.sendMessage("NOT FOUND") })
+    async findAllTemplate = async(template) => {
+      try {
+        const result = await this.templateService.findAll();
+        this.sendMessage(result);
+      }catch(err) {
+        this.sendMessage(err);
+        throw err;
+      }
     }
 
-    async findOneTemplate = (template) => {
-      this.templateService.findOne(template.id)
-      .then( (temp) => { this.sendMessage(temp) })
-      .catch( (err) => { this.sendMessage("NOT FOUND") })
+     findOneTemplate = async(template) => {
+      try {
+        const result = await this.templateService.findOne(template.id);
+        this.sendMessage(result);
+      }catch(err) {
+        this.sendMessage("CAN'T_FIND_ONE");
+        throw err;
+      }
     }
 
-    async deleteTemplate = (template) => {
-      this.templateService.deleteOne(template.id)
-      .then( (temp) => { this.sendMessage("DELETED") })
-      .catch( (err) => { this.sendMessage("NOT DELETED") })
+     deleteTemplate = async(template) => {
+      try {
+        const result = await this.templateService.deleteOne(template.id);
+        this.sendMessage(result);
+      }catch(err) {
+        this.sendMessage("CAN'T_DELETE");
+        throw err;
+      }
     }
 
-    async updateTemplate = (template) => {
-      this.templateService.update(template.id,template)
-      .then( (temp) => { this.sendMessage(temp) })
-      .catch( (err) => { this.sendMessage("NOT UPDATED") })
+     updateTemplate = async(template) => {
+      try {
+        const result = await this.templateService.update(template.id,template);
+        this.sendMessage(result);
+      }catch(err) {
+        this.sendMessage("CAN'T_UPDATE");
+        throw err;
+      }
     }
 
-    async createTemplate = (template) => {
-      this.templateService.create(template)
-      .then( (temp) => { this.sendMessage(temp) })
-      .catch( (err) => { this.sendMessage("NOT CREATED") })
+     createTemplate = async(template) => {
+      try {
+        const result = await this.templateService.create(template);
+        this.sendMessage(result);
+      }catch(err) {
+        this.sendMessage(err);
+        throw err;
+      }
     }
 
     private async sendMessage(msg){
-      var sendQueue = connection.declareQueue("template2")
-      connection.completeConfiguration().then(() => {
+      var sendQueue = connection.default.declareQueue('template-response',{durable:false})
+      connection.default.completeConfiguration().then(() => {
           var msg2 = new Amqp.Message(msg);
-          exchange.send(msg2);
+          exchange.send(msg2,'template-response',{durable:false});
+          console.log(msg2 + "MSG2")
       });
     }
 
     private async listenQueue(){
-      queue.bind(exchange, 'template');
+      queue.bind(exchange, 'template',{durable:false});
       queue.activateConsumer((message) => {
         var msg = message.getContent()
 
